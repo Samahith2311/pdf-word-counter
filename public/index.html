@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PDF Word Counter</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; text-align: center; }
+  h1 { margin-bottom: 10px; }
+  #results { margin-top: 30px; text-align: left; display: inline-block; }
+  #results p { font-size: 18px; }
+  button { padding: 8px 16px; margin-top: 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+  <h1>📄 PDF Word Counter</h1>
+  <p>Upload a PDF to count its letters, words, and lines.</p>
+
+  <input type="file" id="fileInput" accept=".pdf" />
+  <br>
+  <button id="analyzeBtn">Analyze</button>
+
+  <div id="results"></div>
+
+  <script>
+    const btn = document.getElementById('analyzeBtn');
+    const fileInput = document.getElementById('fileInput');
+    const results = document.getElementById('results');
+
+    btn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please choose a PDF file first.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('document', file);
+
+      results.innerHTML = '<p>Analyzing...</p>';
+
+      try {
+        const response = await fetch('/analyze', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+
+        if (data.error) {
+          results.innerHTML = `<p style="color:red">${data.error}</p>`;
+          return;
+        }
+
+        results.innerHTML = `
+          <p><strong>Letters:</strong> ${data.letters}</p>
+          <p><strong>Words:</strong> ${data.words}</p>
+          <p><strong>Lines:</strong> ${data.lines}</p>
+          <p><strong>Characters (with spaces):</strong> ${data.charactersWithSpaces}</p>
+        `;
+      } catch (err) {
+        results.innerHTML = `<p style="color:red">Something went wrong.</p>`;
+      }
+    });
+  </script>
+
+</body>
+</html>
