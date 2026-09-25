@@ -1,0 +1,134 @@
+:root {
+  --paper: #FAF8F3;
+  --ink: #1C1F1E;
+  --green: #2F5D50;
+  --gold: #B8860B;
+  --line: #D9D4C7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+main {
+  width: 100%;
+  max-width: 440px;
+}
+
+h1 {
+  font-family: "Source Serif 4", serif;
+  font-weight: 600;
+  font-size: 28px;
+  margin: 0 0 6px;
+}
+
+.subhead {
+  margin: 0 0 40px;
+  color: #55574f;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+#dropzone {
+  border: 1.5px dashed var(--line);
+  border-radius: 4px;
+  padding: 48px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+#dropzone.dragover {
+  border-color: var(--green);
+  background: rgba(47, 93, 80, 0.05);
+}
+
+#dropzone p {
+  margin: 0;
+  font-size: 15px;
+  color: #55574f;
+}
+
+#dropzone .filename {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+#dropzone .hint {
+  font-size: 13px;
+  margin-top: 8px;
+  color: #8a8d82;
+}
+
+input[type="file"] { display: none; }
+
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  background: var(--green);
+  color: var(--paper);
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+#results {
+  margin-top: 44px;
+}
+
+#results.hidden { display: none; }
+
+.ledger-title {
+  font-size: 13px;
+  color: #8a8d82;
+  margin: 0 0 14px;
+  letter-spacing: 0.02em;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.row .label {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.row .value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 18px;
+  color: var(--gold);
+}
+
+#error {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #a33b2f;
+}
+
+#error.hidden { display: none; }

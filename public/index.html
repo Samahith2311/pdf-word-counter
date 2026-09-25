@@ -2,66 +2,106 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PDF Word Counter</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; text-align: center; }
-  h1 { margin-bottom: 10px; }
-  #results { margin-top: 30px; text-align: left; display: inline-block; }
-  #results p { font-size: 18px; }
-  button { padding: 8px 16px; margin-top: 10px; cursor: pointer; }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Ledger — Word Counter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>📄 PDF Word Counter</h1>
-  <p>Upload a PDF to count its letters, words, and lines.</p>
+<main>
+  <h1>Document Ledger</h1>
+  <p class="subhead">Drop in a PDF, Word doc, or text file. It's counted and logged below.</p>
 
-  <input type="file" id="fileInput" accept=".pdf,.docx,.txt" />
-  <br>
-  <button id="analyzeBtn">Analyze</button>
+  <div id="dropzone">
+    <p id="dropzone-text">Drag a file here, or <span style="text-decoration: underline;">click to browse</span></p>
+    <p class="hint">Accepts .pdf, .docx, .txt</p>
+    <input type="file" id="fileInput" accept=".pdf,.docx,.txt" />
+  </div>
 
-  <div id="results"></div>
+  <button id="analyzeBtn" disabled>Analyze document</button>
 
-  <script>
-    const btn = document.getElementById('analyzeBtn');
-    const fileInput = document.getElementById('fileInput');
-    const results = document.getElementById('results');
+  <p id="error" class="hidden"></p>
 
-    btn.addEventListener('click', async () => {
-      const file = fileInput.files[0];
-      if (!file) {
-        alert('Please choose a PDF file first.');
-        return;
+  <div id="results" class="hidden">
+    <p class="ledger-title">Results</p>
+    <div class="row"><span class="label">Letters</span><span class="value" id="val-letters">—</span></div>
+    <div class="row"><span class="label">Words</span><span class="value" id="val-words">—</span></div>
+    <div class="row"><span class="label">Lines</span><span class="value" id="val-lines">—</span></div>
+    <div class="row"><span class="label">Characters (with spaces)</span><span class="value" id="val-chars">—</span></div>
+  </div>
+</main>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const dropzoneText = document.getElementById('dropzone-text');
+  const fileInput = document.getElementById('fileInput');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const results = document.getElementById('results');
+  const errorEl = document.getElementById('error');
+
+  let selectedFile = null;
+
+  function setFile(file) {
+    selectedFile = file;
+    dropzoneText.innerHTML = `Selected: <span class="filename">${file.name}</span>`;
+    analyzeBtn.disabled = false;
+    errorEl.classList.add('hidden');
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = 'Analyzing…';
+    errorEl.classList.add('hidden');
+
+    const formData = new FormData();
+    formData.append('document', selectedFile);
+
+    try {
+      const response = await fetch('/analyze', { method: 'POST', body: formData });
+      const data = await response.json();
+
+      if (data.error) {
+        errorEl.textContent = data.error;
+        errorEl.classList.remove('hidden');
+        results.classList.add('hidden');
+      } else {
+        document.getElementById('val-letters').textContent = data.letters;
+        document.getElementById('val-words').textContent = data.words;
+        document.getElementById('val-lines').textContent = data.lines;
+        document.getElementById('val-chars').textContent = data.charactersWithSpaces;
+        results.classList.remove('hidden');
       }
-
-      const formData = new FormData();
-      formData.append('document', file);
-
-      results.innerHTML = '<p>Analyzing...</p>';
-
-      try {
-        const response = await fetch('/analyze', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await response.json();
-
-        if (data.error) {
-          results.innerHTML = `<p style="color:red">${data.error}</p>`;
-          return;
-        }
-
-        results.innerHTML = `
-          <p><strong>Letters:</strong> ${data.letters}</p>
-          <p><strong>Words:</strong> ${data.words}</p>
-          <p><strong>Lines:</strong> ${data.lines}</p>
-          <p><strong>Characters (with spaces):</strong> ${data.charactersWithSpaces}</p>
-        `;
-      } catch (err) {
-        results.innerHTML = `<p style="color:red">Something went wrong.</p>`;
-      }
-    });
-  </script>
+    } catch (err) {
+      errorEl.textContent = 'Something went wrong reaching the server.';
+      errorEl.classList.remove('hidden');
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = 'Analyze document';
+    }
+  });
+</script>
 
 </body>
-</html> 
+</html>
