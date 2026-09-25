@@ -6,10 +6,13 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Configure where uploaded files temporarily go
 const upload = multer({ dest: 'uploads/' });
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
 
 // Serve our frontend files (HTML/CSS/JS) from the 'public' folder
 app.use(express.static('public'));
