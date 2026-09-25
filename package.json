@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Samahith2311/pdf-word-counter#readme",
   "dependencies": {
     "express": "^5.2.1",
+    "mammoth": "^1.12.3",
     "multer": "^2.4.0",
     "pdf-parse": "^1.1.1"
   },

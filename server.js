@@ -1,7 +1,9 @@
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 
 const app = express();
 const PORT = 3000;
@@ -20,13 +22,28 @@ app.post('/analyze', upload.single('document'), async (req, res) => {
     }
 
     const filePath = req.file.path;
-    const dataBuffer = fs.readFileSync(filePath);
+    const originalName = req.file.originalname;
+    const ext = path.extname(originalName).toLowerCase();
 
-    // Extract raw text from the PDF
-    const pdfData = await pdfParse(dataBuffer);
-    const text = pdfData.text;
+    let text = '';
 
-    // Delete the temp file now that we've read it
+    if (ext === '.pdf') {
+      const dataBuffer = fs.readFileSync(filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      text = pdfData.text;
+
+    } else if (ext === '.docx') {
+      const result = await mammoth.extractRawText({ path: filePath });
+      text = result.value;
+
+    } else if (ext === '.txt') {
+      text = fs.readFileSync(filePath, 'utf8');
+
+    } else {
+      fs.unlinkSync(filePath);
+      return res.status(400).json({ error: 'Unsupported file type. Please upload a .pdf, .docx, or .txt file.' });
+    }
+
     fs.unlinkSync(filePath);
 
     // --- Counting logic ---
